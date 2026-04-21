@@ -10,6 +10,7 @@
 #include <array>
 #include <limits>
 #include <tuple>
+#include <cstdio>      // for sprintf
 #include <mpi.h>
 
 using namespace std;
@@ -531,7 +532,6 @@ static void rcb_split(const vector<Triangle>& triangles, vector<int>& part,
 }
 
 void rcb_partition(const vector<Triangle>& triangles, vector<int>& part, int num_procs) {
-    // CHECK: DECOMPOSITION
     int n = triangles.size();
     part.resize(n);
     vector<int> indices(n);
@@ -696,7 +696,6 @@ void initializeSolutionLocal(const vector<Triangle>& triangles,
 
 void exchangeHalo(const vector<NeighborExchange>& neighbors,
                   vector<array<double,4>>& U_local) {
-    // CHECK: HALO_EXCHANGE
     int n_neigh = neighbors.size();
     vector<vector<double>> send_bufs(n_neigh);
     vector<vector<double>> recv_bufs(n_neigh);
@@ -739,15 +738,8 @@ void writeVTK(const string& filename,
               const vector<int>& part,
               double time) {
     if (mpi_rank != 0) return;
-    string outName = filename;
-    size_t dot = outName.rfind('.');
-    if (dot != string::npos && outName.substr(dot) == ".msh")
-        outName.replace(dot, 4, ".vtk");
-    else
-        outName += ".vtk";
-
-    ofstream out(outName);
-    if (!out) { cerr << "Cannot create output file.\n"; return; }
+    ofstream out(filename);
+    if (!out) { cerr << "Cannot create output file: " << filename << "\n"; return; }
 
     out << "# vtk DataFile Version 3.0\n";
     out << "Mesh from Gmsh, time = " << time << "\n";
@@ -785,7 +777,7 @@ void writeVTK(const string& filename,
     }
     out.close();
     if (mpi_rank == 0)
-        cout << "VTK file written: " << outName << " at time " << time << "\n";
+        cout << "VTK file written: " << filename << " at time " << time << "\n";
 }
 
 void gatherSolution(const vector<array<double,4>>& U_local,
@@ -855,17 +847,28 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     double start_time = MPI_Wtime();
 
-    if (argc != 2) {
+    if (argc < 2 || argc > 3) {
         if (mpi_rank == 0)
-            cout << "Usage: " << argv[0] << " file.msh\n";
+            cout << "Usage: " << argv[0] << " file.msh [output_prefix]\n";
         MPI_Finalize();
         return 1;
+    }
+
+    string meshFile = argv[1];
+    string outputPrefix;
+    if (argc >= 3) {
+        outputPrefix = argv[2];
+    } else {
+        outputPrefix = meshFile;
+        size_t dot = outputPrefix.rfind('.');
+        if (dot != string::npos && outputPrefix.substr(dot) == ".msh")
+            outputPrefix = outputPrefix.substr(0, dot);
     }
 
     vector<Point> points;
     vector<Triangle> triangles;
     vector<BoundaryLine> boundaryLines;
-    if (!readGmshMesh(argv[1], points, triangles, boundaryLines)) {
+    if (!readGmshMesh(meshFile, points, triangles, boundaryLines)) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
@@ -898,10 +901,6 @@ int main(int argc, char* argv[]) {
     int iter = 0;
     double nextOutput = OUTPUT_INTERVAL;
     int fileCounter = 0;
-    string baseName = argv[1];
-    size_t dot = baseName.rfind('.');
-    if (dot != string::npos && baseName.substr(dot) == ".msh")
-        baseName = baseName.substr(0, dot);
 
     if (mpi_rank == 0) {
         cout << "Starting parallel Godunov solver on " << mpi_size << " processes.\n";
@@ -974,7 +973,7 @@ int main(int argc, char* argv[]) {
             gatherSolution(U_local, my_cells, triangles, global_U);
             if (mpi_rank == 0) {
                 char outName[256];
-                sprintf(outName, "%s_%06d.vtk", baseName.c_str(), fileCounter);
+                sprintf(outName, "%s_%06d.vtk", outputPrefix.c_str(), fileCounter);
                 writeVTK(outName, points, triangles, global_U, part, t);
                 fileCounter++;
             }
@@ -989,9 +988,11 @@ int main(int argc, char* argv[]) {
     vector<array<double,4>> global_U;
     gatherSolution(U_local, my_cells, triangles, global_U);
     if (mpi_rank == 0) {
-        writeVTK(argv[1], points, triangles, global_U, part, t);
+        string finalVTK = outputPrefix + "_final.vtk";
+        writeVTK(finalVTK.c_str(), points, triangles, global_U, part, t);
         cout << "Simulation finished. Final time = " << t << "\n";
     }
+
     double end_time = MPI_Wtime();
     if (mpi_rank == 0) {
         cout << "Total wall time: " << (end_time - start_time) << " seconds" << endl;

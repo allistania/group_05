@@ -1,0 +1,2 @@
+D_computed = 0.507 cm/us (D_CJ=0.880, err=42.38%)
+P_max = 0.1 Mbar (P_CJ=0.356)

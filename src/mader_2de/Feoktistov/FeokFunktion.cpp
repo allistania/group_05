@@ -779,14 +779,14 @@ computeSlopes2D(
 }
 
 std::tuple<
-    std::vector<std::vector<double>>, // F1 (масса, x-поток)
-    std::vector<std::vector<double>>, // F2 (x-импульс, x-поток)
-    std::vector<std::vector<double>>, // F3 (y-импульс, x-поток)
-    std::vector<std::vector<double>>, // F4 (энергия, x-поток)
-    std::vector<std::vector<double>>, // G1 (масса, y-поток)
-    std::vector<std::vector<double>>, // G2 (x-импульс, y-поток)
-    std::vector<std::vector<double>>, // G3 (y-импульс, y-поток)
-    std::vector<std::vector<double>>  // G4 (энергия, y-поток)
+    std::vector<std::vector<double>>, // F1 (     , x-     )
+    std::vector<std::vector<double>>, // F2 (x-       , x-     )
+    std::vector<std::vector<double>>, // F3 (y-       , x-     )
+    std::vector<std::vector<double>>, // F4 (       , x-     )
+    std::vector<std::vector<double>>, // G1 (     , y-     )
+    std::vector<std::vector<double>>, // G2 (x-       , y-     )
+    std::vector<std::vector<double>>, // G3 (y-       , y-     )
+    std::vector<std::vector<double>>  // G4 (       , y-     )
 >
 computeFluxesWithGivenSlopes(
     int cells_x, int cells_y, int ghost_cells,
@@ -1005,12 +1005,12 @@ void applyBCs2D(
     const std::string& left_bc, const std::string& right_bc,
     const std::string& bottom_bc, const std::string& top_bc)
 {
-    // Применяем условия по x (строки)
+    //                      x (      )
     for (int j = 0; j < Ny; ++j) {
         applyBoundaryConditions(rho[j].data(), u[j].data(), P[j].data(),
                                 cells_x, ghost_cells, left_bc, right_bc);
     }
-    // Применяем условия по y (столбцы)
+    //                      y (       )
     for (int i = 0; i < Nx; ++i) {
         std::vector<double> rho_col(Ny), u_col(Ny), v_col(Ny), P_col(Ny);
         for (int j = 0; j < Ny; ++j) {
@@ -1438,10 +1438,10 @@ std::tuple<
     return {F1, F2, F3, F4, G1, G2, G3, G4};
 }
 std::tuple<
-    std::vector<std::vector<double>>, // R1 (масса)
-    std::vector<std::vector<double>>, // R2 (x-импульс)
-    std::vector<std::vector<double>>, // R3 (y-импульс)
-    std::vector<std::vector<double>>  // R4 (энергия)
+    std::vector<std::vector<double>>, // R1 (     )
+    std::vector<std::vector<double>>, // R2 (x-       )
+    std::vector<std::vector<double>>, // R3 (y-       )
+    std::vector<std::vector<double>>  // R4 (       )
 >
 computeRHS_ENO_2D(
     int cells_x, int cells_y, int ghost_cells,
@@ -1599,7 +1599,7 @@ void ENO2DSolve(
         std::vector<std::vector<double>> v_temp = v;
         std::vector<std::vector<double>> P_temp = P;
         std::vector<std::vector<double>> rho_temp = rho;
-        std::vector<std::vector<double>> I_temp = I; // не используется, но для совместимости
+        std::vector<std::vector<double>> I_temp = I; //                ,                     
 
         updatePrimitiveVariables2D(cells_x, cells_y, ghost_cells,
                                    u_temp, v_temp, P_temp, rho_temp, I_temp,
@@ -1847,7 +1847,7 @@ std::tuple<double, double, double, double> WENO5reconstruction_y_top(
     const std::vector<std::vector<double>>& rho)
 {
     double epsilon = 1e-6;
-    double c0 = 0.3, c1 = 0.6, c2 = 0.1;  // веса для верхней грани (как для правой)
+    double c0 = 0.3, c1 = 0.6, c2 = 0.1;  //                        (              )
 
     double u0 = (2.0/6.0)*u[j-2][i] - (7.0/6.0)*u[j-1][i] + (11.0/6.0)*u[j][i];
     double u1 = (-1.0/6.0)*u[j-1][i] + (5.0/6.0)*u[j][i] + (2.0/6.0)*u[j+1][i];
@@ -1946,7 +1946,7 @@ std::tuple<double, double, double, double> WENO5reconstruction_y_bottom(
     const std::vector<std::vector<double>>& rho)
 {
     double epsilon = 1e-6;
-    double c0 = 0.1, c1 = 0.6, c2 = 0.3;  // веса для нижней грани (как для левой)
+    double c0 = 0.1, c1 = 0.6, c2 = 0.3;  //                       (             )
 
     double u0 = (-1.0/6.0)*u[j-2][i] + (5.0/6.0)*u[j-1][i] + (1.0/3.0)*u[j][i];
     double u1 = (1.0/3.0)*u[j-1][i] + (5.0/6.0)*u[j][i] - (1.0/6.0)*u[j+1][i];
@@ -2071,9 +2071,9 @@ computeFluxes2D_WENO(
 
     for (int j = 0; j < Ny; ++j) {
         for (int i = ghost_cells - 1; i < Nx - ghost_cells; ++i) {
-            // Левое состояние (из ячейки i) – значение на правой стороне ячейки i
+            //                 (          i)                                     i
             auto [u_L, v_L, p_L, rho_L] = WENO5reconstruction_x_right(i, j, u, v, P, rho);
-            // Правое состояние (из ячейки i+1) – значение на левой стороне ячейки i+1
+            //                  (          i+1)                                    i+1
             auto [u_R, v_R, p_R, rho_R] = WENO5reconstruction_x_left(i+1, j, u, v, P, rho);
 
             auto [rho_face, u_face, p_face] = superSolve(rho_L, u_L, p_L,
@@ -2091,9 +2091,9 @@ computeFluxes2D_WENO(
 
     for (int j = ghost_cells - 1; j < Ny - ghost_cells; ++j) {
         for (int i = 0; i < Nx; ++i) {
-            // Нижнее состояние (из ячейки j) – значение на верхней стороне ячейки j
+            //                  (          j)                                      j
             auto [u_B, v_B, p_B, rho_B] = WENO5reconstruction_y_top(i, j, u, v, P, rho);
-            // Верхнее состояние (из ячейки j+1) – значение на нижней стороне ячейки j+1
+            //                   (          j+1)                                     j+1
             auto [u_T, v_T, p_T, rho_T] = WENO5reconstruction_y_bottom(i, j+1, u, v, P, rho);
 
             auto [rho_face, v_face, p_face] = superSolve(rho_B, v_B, p_B,
@@ -2285,10 +2285,10 @@ void WENO2DSolve(
 
 
 std::tuple<
-    std::vector<std::vector<double>>, // R1 (масса)
-    std::vector<std::vector<double>>, // R2 (x-импульс)
-    std::vector<std::vector<double>>, // R3 (y-импульс)
-    std::vector<std::vector<double>>  // R4 (энергия)
+    std::vector<std::vector<double>>, // R1 (     )
+    std::vector<std::vector<double>>, // R2 (x-       )
+    std::vector<std::vector<double>>, // R3 (y-       )
+    std::vector<std::vector<double>>  // R4 (       )
 >
 computeRHS_Fletcher_2D(
     int cells_x, int cells_y, int ghost_cells,
@@ -2400,7 +2400,7 @@ void applyFCT2D(
         std::vector<std::vector<double>> phi(ny, std::vector<double>(nx, 0.0));
         std::vector<std::vector<double>> phi_limited(ny, std::vector<double>(nx, 0.0));
 
-        if (dir == 0) { // по x
+        if (dir == 0) { //    x
             for (int j = ghost_cells; j < ny - ghost_cells; ++j) {
                 for (int i = ghost_cells; i < nx - ghost_cells - 1; ++i) {
                     phi[j][i] = anti_diffusion_coeff * (U[j][i+1] - U[j][i]);
@@ -2571,7 +2571,7 @@ void saveToCSV(
 
     std::ofstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Ошибка открытия файла: " << filename << std::endl;
+        std::cerr << "                     : " << filename << std::endl;
         return;
     }
 
@@ -2622,8 +2622,8 @@ void newTimeStep2D(
     double tau_new = CFL * min_dt;
     if (tau_new < 1e-10) tau_new = 1e-10;
 
-    // Если tau ещё не задан (первый шаг) или новое значение меньше текущего,
-    // то обновляем tau. В противном случае оставляем без изменений.
+    //      tau              (          )                                   ,
+    //              tau.                                           .
     if (tau == 0.0 || tau_new < tau) {
         if (tau != 0.0) {
             std::cout << "Time step reduced from " << tau << " to " << tau_new << std::endl;
@@ -2784,37 +2784,37 @@ void setInitialConditions(
     }
 
 else if (test_case == "detonation") {
-    // Параметры идеализированного ВВ (? = 3, данные из теста)
-    const double gamma = 3.0;                // показатель адиабаты продуктов
-    const double rho0 = 1.84;                 // начальная плотность [г/см?]
-    const double D = 0.88;                     // скорость детонации Чепмена–Жуге [см/мкс]
-    const double Q = D*D / (2.0 * (gamma*gamma - 1.0)); // энергия взрыва [Мбар·см?/г]
-    const double P_CJ = rho0 * D*D / (gamma + 1.0);      // давление на плоскости CJ
-    const double rho_CJ = rho0 * (gamma + 1.0) / gamma;  // плотность за фронтом
-    const double u_CJ = D / (gamma + 1.0);                // скорость вещества за фронтом
-    const double I_thermal_CJ = P_CJ / ((gamma - 1.0) * rho_CJ); // тепловая часть энергии
-    const double I_CJ = I_thermal_CJ + Q;                 // полная внутренняя энергия
+    //                                (? = 3,                )
+    const double gamma = 3.0;                //                              
+    const double rho0 = 1.84;                 //                     [ /  ?]
+    const double D = 0.88;                     //                                [  /   ]
+    const double Q = D*D / (2.0 * (gamma*gamma - 1.0)); //                [      ?/ ]
+    const double P_CJ = rho0 * D*D / (gamma + 1.0);      //                       CJ
+    const double rho_CJ = rho0 * (gamma + 1.0) / gamma;  //                     
+    const double u_CJ = D / (gamma + 1.0);                //                             
+    const double I_thermal_CJ = P_CJ / ((gamma - 1.0) * rho_CJ); //                       
+    const double I_CJ = I_thermal_CJ + Q;                 //                          
 
-    // Ширина детонатора (например, 5 ячеек)
+    //                   (        , 5      )
     int det_cells = 1;
     double det_length = det_cells * hx;
 
     for (int j = 0; j < Ny; ++j) {
         for (int i = 0; i < Nx; ++i) {
-            double x = (i - ghost_cells + 0.5) * hx; // координата центра ячейки
+            double x = (i - ghost_cells + 0.5) * hx; //                         
             if (x < det_length) {
-                // Детонатор (продукты)
+                //           (        )
                 rho[j][i] = rho_CJ;
                 u[j][i]   = u_CJ;
                 v[j][i]   = 0.0;
                 P[j][i]   = P_CJ;
                 I[j][i]   = I_CJ;
             } else {
-                // Невзорвавшееся ВВ
+                //                  
                 rho[j][i] = rho0;
                 u[j][i]   = 0.0;
                 v[j][i]   = 0.0;
-                P[j][i]   = 1e-6; // очень маленькое давление, чтобы избежать деления на ноль
+                P[j][i]   = 1e-6; //                         ,                               
                 I[j][i]   = 0.0;
             }
         }
@@ -2840,11 +2840,11 @@ bool readConfigFromFile(const std::string& filename,
                         std::string& bottom_bc,
                         std::string& top_bc,
                         int& save_every,
-                        std::string& test_case)   // новый параметр
+                        std::string& test_case)   //               
 {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Ошибка: не удалось открыть файл " << filename << std::endl;
+        std::cerr << "      :                         " << filename << std::endl;
         return false;
     }
 
@@ -2874,7 +2874,7 @@ bool readConfigFromFile(const std::string& filename,
         else if (key == "bottom_bc") iss >> bottom_bc;
         else if (key == "top_bc") iss >> top_bc;
         else if (key == "save_every") iss >> save_every;
-        else if (key == "test_case") iss >> test_case;   // новый ключ
+        else if (key == "test_case") iss >> test_case;   //           
         else {
         }
     }
@@ -3901,14 +3901,14 @@ for (int j = ghost_cells; j < Ny - ghost_cells; ++j) {
                 u[j][i-1]   = -u[j][i];
                 v[j][i-1]   = v[j][i];
             }
-            // Сверху
+            //       
             if (isSolid[j+1][i]) {
                 rho[j+1][i] = rho[j][i];
                 P[j+1][i]   = P[j][i];
                 u[j+1][i]   = u[j][i];
                 v[j+1][i]   = -v[j][i];
             }
-            // Снизу
+            //      
             if (isSolid[j-1][i]) {
                 rho[j-1][i] = rho[j][i];
                 P[j-1][i]   = P[j][i];
@@ -3925,8 +3925,423 @@ for (int j = ghost_cells; j < Ny - ghost_cells; ++j) {
 
 }
 
+void applyBoundaryConditions2(double* rho, double* u, double* P,
+                             int cells, int ghost,
+                             const std::string& left_bc, const std::string& right_bc);
+
+const double PURE_EPS = 1e-6;
+const double MIXED_MIN = 1e-4;
+const double MIXED_MAX = 1.0 - 1e-4;
+
+inline bool isPure(double W) {
+    return (W <= PURE_EPS) || (W >= 1.0 - PURE_EPS);
+}
+
+inline bool isMixed(double W) {
+    return (W > MIXED_MIN) && (W < MIXED_MAX);
+}
 
 void Mader(
+    int cells_x, int cells_y, int ghost_cells,
+    std::vector<std::vector<double>>& u,
+    std::vector<std::vector<double>>& v,
+    std::vector<std::vector<double>>& P,
+    std::vector<std::vector<double>>& rho,
+    std::vector<std::vector<double>>& I,
+    std::vector<std::vector<double>>& W,
+    double& t_total, double tau, double hx, double hy,
+    const std::string& left_bc, const std::string& right_bc,
+    const std::string& bottom_bc, const std::string& top_bc,
+    double viscosity_coeff,
+    double MINWT, double GASW, int VCNT,
+    double Z_freq, double E_act_over_R, double R_gas,
+    bool axisymmetric = false)
+{
+    const double gamma = 1.4;
+    const double MINGRHO = 0.0;
+    const double C = 0.25;
+    const double S = 1.5;
+    const double gamma_s = 1.2;
+    const double rho0 = 1.84;
+    const double V0 = 1.0 / rho0;
+    const double Q = 0.08;
+    const double R_gas_local = 1e-5;
+
+    static int step_counter = 0;
+    step_counter++;
+
+    int Nx = cells_x + 2 * ghost_cells;
+    int Ny = cells_y + 2 * ghost_cells;
+
+    int i_start = ghost_cells;
+    int i_end = ghost_cells + cells_x - 1;
+    int j_start = ghost_cells;
+    int j_end = ghost_cells + cells_y - 1;
+
+    std::vector<std::vector<double>> u_tilde(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> v_tilde(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> rho_tilde(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> I_tilde(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> E_total(Ny, std::vector<double>(Nx, 0.0));
+
+    std::vector<std::vector<double>> q1(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> q2(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> q3(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> q4(Ny, std::vector<double>(Nx, 0.0));
+
+    std::vector<std::vector<double>> DM(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> DE(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> DPU(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> DPV(Ny, std::vector<double>(Nx, 0.0));
+    std::vector<std::vector<double>> DW(Ny, std::vector<double>(Nx, 0.0));
+
+    double dt = tau;
+
+    // CHECK: MADER_EOS
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double V = 1.0 / rho[j][i];
+            double dV = V0 - V;
+            if (dV < 0.0) {
+                double I_thermal = I[j][i] - (1.0 - W[j][i]) * Q;
+                if (I_thermal < 0.0) I_thermal = 0.0;
+                P[j][i] = (gamma_s / V) * I_thermal;
+                if (P[j][i] < 0.0) P[j][i] = 0.0;
+            } else {
+                double denom = V0 - S * dV;
+                if (fabs(denom) < 1e-12) denom = 1e-12;
+                double P_H = (C * C * dV) / (denom * denom);
+                double I_H = 0.5 * P_H * dV;
+                double I_thermal = I[j][i] - (1.0 - W[j][i]) * Q;
+                if (I_thermal < 0.0) I_thermal = 0.0;
+                P[j][i] = P_H + (gamma_s / V) * (I_thermal - I_H);
+                if (P[j][i] < 0.0) P[j][i] = 0.0;
+            }
+        }
+    }
+
+    // CHECK: MADER_ARRHENIUS
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double T = P[j][i] / (rho[j][i] * R_gas_local);
+            if (T > MINWT && W[j][i] > GASW && step_counter > VCNT) {
+                double rate = Z_freq * exp(-E_act_over_R / T);
+                double dW = dt * rate * W[j][i];
+                W[j][i] -= dW;
+                if (W[j][i] < 0.0) W[j][i] = 0.0;
+                if (W[j][i] < GASW) W[j][i] = 0.0;
+            }
+        }
+    }
+
+    for (int j = 0; j < Ny; ++j) {
+        applyBoundaryConditions2(rho[j].data(), u[j].data(), P[j].data(),
+                                cells_x, ghost_cells, left_bc, right_bc);
+    }
+    for (int i = 0; i < Nx; ++i) {
+        std::vector<double> rho_col(Ny), u_col(Ny), v_col(Ny), P_col(Ny);
+        for (int j = 0; j < Ny; ++j) {
+            rho_col[j] = rho[j][i];
+            u_col[j]   = u[j][i];
+            v_col[j]   = v[j][i];
+            P_col[j]   = P[j][i];
+        }
+        applyBoundaryConditions2(rho_col.data(), u_col.data(), P_col.data(),
+                                cells_y, ghost_cells, bottom_bc, top_bc);
+        for (int j = 0; j < Ny; ++j) {
+            rho[j][i] = rho_col[j];
+            u[j][i]   = u_col[j];
+            v[j][i]   = v_col[j];
+            P[j][i]   = P_col[j];
+        }
+    }
+
+    // CHECK: MADER_VISC
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            if (j > j_start && v[j-1][i] > v[j][i]) {
+                double dv = v[j-1][i] - v[j][i];
+                q1[j][i] = viscosity_coeff * 0.5 * (rho[j-1][i] + rho[j][i]) * dv * dv;
+            } else {
+                q1[j][i] = 0.0;
+            }
+            if (i > i_start && u[j][i-1] > u[j][i]) {
+                double du = u[j][i-1] - u[j][i];
+                q2[j][i] = viscosity_coeff * 0.5 * (rho[j][i-1] + rho[j][i]) * du * du;
+            } else {
+                q2[j][i] = 0.0;
+            }
+        }
+    }
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            q3[j][i] = q1[j+1][i];
+            q4[j][i] = q2[j][i+1];
+        }
+    }
+
+    // CHECK: MADER_VELOCITY
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double P1 = P[j-1][i];
+            double P2 = P[j][i-1];
+            double P3 = P[j+1][i];
+            double P4 = P[j][i+1];
+
+            u_tilde[j][i] = u[j][i] - (dt / (rho[j][i] * hx)) * ((P4 + q4[j][i]) - (P2 + q2[j][i]));
+            v_tilde[j][i] = v[j][i] - (dt / (rho[j][i] * hy)) * ((P3 + q3[j][i]) - (P1 + q1[j][i]));
+        }
+    }
+
+    // CHECK: MADER_ZIP
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double u_left  = 0.5 * (u_tilde[j][i-1] + u_tilde[j][i]);
+            double u_right = 0.5 * (u_tilde[j][i] + u_tilde[j][i+1]);
+            double v_bottom = 0.5 * (v_tilde[j-1][i] + v_tilde[j][i]);
+            double v_top    = 0.5 * (v_tilde[j][i] + v_tilde[j+1][i]);
+
+            double divU = (u_right - u_left) / hx + (v_top - v_bottom) / hy;
+            rho_tilde[j][i] = rho[j][i] - rho[j][i] * dt * divU;
+            if (rho_tilde[j][i] < MINGRHO) rho_tilde[j][i] = MINGRHO;
+
+            double work = 0.0;
+            work += P[j][i] * ((u_right - u_left)/hx + (v_top - v_bottom)/hy) * dt;
+            work += q4[j][i] * (u_tilde[j][i+1] - u_tilde[j][i]) / hx * dt;
+            work += q2[j][i] * (u_tilde[j][i] - u_tilde[j][i-1]) / hx * dt;
+            work += q3[j][i] * (v_tilde[j+1][i] - v_tilde[j][i]) / hy * dt;
+            work += q1[j][i] * (v_tilde[j][i] - v_tilde[j-1][i]) / hy * dt;
+
+            I_tilde[j][i] = I[j][i] - work / rho[j][i];
+            if (I_tilde[j][i] < 0.0) I_tilde[j][i] = 0.0;
+
+            E_total[j][i] = I_tilde[j][i] + 0.5 * (u_tilde[j][i]*u_tilde[j][i] + v_tilde[j][i]*v_tilde[j][i]);
+        }
+    }
+
+    // CHECK: MADER_DONOR
+    for (int j = 0; j < Ny; ++j)
+        for (int i = 0; i < Nx; ++i) {
+            DM[j][i] = DE[j][i] = DPU[j][i] = DPV[j][i] = DW[j][i] = 0.0;
+        }
+
+    for (int j = j_start; j <= j_end-1; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double V_avg = 0.5 * (v_tilde[j][i] + v_tilde[j+1][i]);
+            double beta = (V_avg * dt / hy) / (1.0 + (v_tilde[j][i] - v_tilde[j+1][i]) * dt / hy + 1e-12);
+            beta = std::max(-1.0, std::min(1.0, beta));
+
+            int donor_j, donor_i, acc_j, acc_i;
+            double abs_beta;
+            if (beta >= 0) {
+                donor_j = j; donor_i = i; acc_j = j+1; acc_i = i; abs_beta = beta;
+            } else {
+                donor_j = j+1; donor_i = i; acc_j = j; acc_i = i; abs_beta = -beta;
+            }
+
+            double DMASS = rho_tilde[donor_j][donor_i] * abs_beta;
+            if (axisymmetric) {
+                double r_face = (donor_i + 0.5) * hx;
+                double r_center = (donor_i + 0.5 - 0.5*abs_beta) * hx;
+                DMASS *= r_face / r_center;
+            }
+
+            DM[donor_j][donor_i] -= DMASS;
+            DM[acc_j][acc_i] += DMASS;
+            DE[donor_j][donor_i] -= DMASS * E_total[donor_j][donor_i];
+            DE[acc_j][acc_i] += DMASS * E_total[donor_j][donor_i];
+            DPU[donor_j][donor_i] -= DMASS * u_tilde[donor_j][donor_i];
+            DPU[acc_j][acc_i] += DMASS * u_tilde[donor_j][donor_i];
+            DPV[donor_j][donor_i] -= DMASS * v_tilde[donor_j][donor_i];
+            DPV[acc_j][acc_i] += DMASS * v_tilde[donor_j][donor_i];
+
+            // CHECK: SHARGATOV
+            double W_donor = W[donor_j][donor_i];
+            double transferred_W = W_donor;
+
+            if (isMixed(W_donor)) {
+                bool found_pure = false;
+                double pure_W = -1.0;
+
+                if (donor_j+1 < Ny && !(donor_j+1 == acc_j && donor_i == acc_i)) {
+                    double w_neigh = W[donor_j+1][donor_i];
+                    if (isPure(w_neigh)) {
+                        found_pure = true;
+                        pure_W = w_neigh;
+                    }
+                }
+                if (!found_pure && donor_j-1 >= 0 && !(donor_j-1 == acc_j && donor_i == acc_i)) {
+                    double w_neigh = W[donor_j-1][donor_i];
+                    if (isPure(w_neigh)) {
+                        found_pure = true;
+                        pure_W = w_neigh;
+                    }
+                }
+                if (!found_pure && donor_i-1 >= 0 && !(donor_j == acc_j && donor_i-1 == acc_i)) {
+                    double w_neigh = W[donor_j][donor_i-1];
+                    if (isPure(w_neigh)) {
+                        found_pure = true;
+                        pure_W = w_neigh;
+                    }
+                }
+                if (!found_pure && donor_i+1 < Nx && !(donor_j == acc_j && donor_i+1 == acc_i)) {
+                    double w_neigh = W[donor_j][donor_i+1];
+                    if (isPure(w_neigh)) {
+                        found_pure = true;
+                        pure_W = w_neigh;
+                    }
+                }
+
+                if (found_pure) {
+                    transferred_W = 1.0 - pure_W;
+                    transferred_W = std::max(0.0, std::min(1.0, transferred_W));
+                }
+            }
+
+            DW[donor_j][donor_i] -= DMASS * transferred_W;
+            DW[acc_j][acc_i] += DMASS * transferred_W;
+        }
+    }
+
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end-1; ++i) {
+            double U_avg = 0.5 * (u_tilde[j][i] + u_tilde[j][i+1]);
+            double alpha = (U_avg * dt / hx) / (1.0 + (u_tilde[j][i] - u_tilde[j][i+1]) * dt / hx + 1e-12);
+            alpha = std::max(-1.0, std::min(1.0, alpha));
+
+            int donor_j, donor_i, acc_j, acc_i;
+            double abs_alpha;
+            if (alpha >= 0) {
+                donor_j = j; donor_i = i; acc_j = j; acc_i = i+1; abs_alpha = alpha;
+            } else {
+                donor_j = j; donor_i = i+1; acc_j = j; acc_i = i; abs_alpha = -alpha;
+            }
+
+            double DMASS = rho_tilde[donor_j][donor_i] * abs_alpha;
+            if (axisymmetric) {
+                int idx = donor_i;
+                double geom_factor = (2.0*idx - abs_alpha) / (2.0*idx - 1.0);
+                DMASS *= geom_factor;
+            }
+
+            DM[donor_j][donor_i] -= DMASS;
+            DM[acc_j][acc_i] += DMASS;
+            DE[donor_j][donor_i] -= DMASS * E_total[donor_j][donor_i];
+            DE[acc_j][acc_i] += DMASS * E_total[donor_j][donor_i];
+            DPU[donor_j][donor_i] -= DMASS * u_tilde[donor_j][donor_i];
+            DPU[acc_j][acc_i] += DMASS * u_tilde[donor_j][donor_i];
+            DPV[donor_j][donor_i] -= DMASS * v_tilde[donor_j][donor_i];
+            DPV[acc_j][acc_i] += DMASS * v_tilde[donor_j][donor_i];
+
+            // CHECK: SHARGATOV
+            double W_donor = W[donor_j][donor_i];
+            double transferred_W = W_donor;
+
+            if (isMixed(W_donor)) {
+                bool found_pure = false;
+                double pure_W = -1.0;
+
+                if (donor_j+1 < Ny && !(donor_j+1 == acc_j && donor_i == acc_i)) {
+                    double w_neigh = W[donor_j+1][donor_i];
+                    if (isPure(w_neigh)) { found_pure = true; pure_W = w_neigh; }
+                }
+                if (!found_pure && donor_j-1 >= 0 && !(donor_j-1 == acc_j && donor_i == acc_i)) {
+                    double w_neigh = W[donor_j-1][donor_i];
+                    if (isPure(w_neigh)) { found_pure = true; pure_W = w_neigh; }
+                }
+                if (!found_pure && donor_i-1 >= 0 && !(donor_j == acc_j && donor_i-1 == acc_i)) {
+                    double w_neigh = W[donor_j][donor_i-1];
+                    if (isPure(w_neigh)) { found_pure = true; pure_W = w_neigh; }
+                }
+                if (!found_pure && donor_i+1 < Nx && !(donor_j == acc_j && donor_i+1 == acc_i)) {
+                    double w_neigh = W[donor_j][donor_i+1];
+                    if (isPure(w_neigh)) { found_pure = true; pure_W = w_neigh; }
+                }
+
+                if (found_pure) {
+                    transferred_W = 1.0 - pure_W;
+                    transferred_W = std::max(0.0, std::min(1.0, transferred_W));
+                }
+            }
+
+            DW[donor_j][donor_i] -= DMASS * transferred_W;
+            DW[acc_j][acc_i] += DMASS * transferred_W;
+        }
+    }
+
+    // CHECK: MADER_REPARTITION
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double rho_new = rho_tilde[j][i] + DM[j][i];
+            if (rho_new < MINGRHO) rho_new = MINGRHO;
+
+            double u_new = (rho_tilde[j][i] * u_tilde[j][i] + DPU[j][i]) / rho_new;
+            double v_new = (rho_tilde[j][i] * v_tilde[j][i] + DPV[j][i]) / rho_new;
+            double E_new = (rho_tilde[j][i] * E_total[j][i] + DE[j][i]) / rho_new;
+            double I_new = E_new - 0.5 * (u_new * u_new + v_new * v_new);
+            if (I_new < 0.0) I_new = 0.0;
+
+            double W_new = (rho_tilde[j][i] * W[j][i] + DW[j][i]) / rho_new;
+            if (W_new < 0.0) W_new = 0.0;
+            if (W_new > 1.0) W_new = 1.0;
+
+            rho[j][i] = rho_new;
+            u[j][i] = u_new;
+            v[j][i] = v_new;
+            I[j][i] = I_new;
+            W[j][i] = W_new;
+        }
+    }
+
+    for (int j = 0; j < Ny; ++j) {
+        applyBoundaryConditions2(rho[j].data(), u[j].data(), P[j].data(),
+                                cells_x, ghost_cells, left_bc, right_bc);
+    }
+    for (int i = 0; i < Nx; ++i) {
+        std::vector<double> rho_col(Ny), u_col(Ny), v_col(Ny), P_col(Ny);
+        for (int j = 0; j < Ny; ++j) {
+            rho_col[j] = rho[j][i];
+            u_col[j]   = u[j][i];
+            v_col[j]   = v[j][i];
+            P_col[j]   = P[j][i];
+        }
+        applyBoundaryConditions2(rho_col.data(), u_col.data(), P_col.data(),
+                                cells_y, ghost_cells, bottom_bc, top_bc);
+        for (int j = 0; j < Ny; ++j) {
+            rho[j][i] = rho_col[j];
+            u[j][i]   = u_col[j];
+            v[j][i]   = v_col[j];
+            P[j][i]   = P_col[j];
+        }
+    }
+
+    for (int j = j_start; j <= j_end; ++j) {
+        for (int i = i_start; i <= i_end; ++i) {
+            double V = 1.0 / rho[j][i];
+            double dV = V0 - V;
+            if (dV < 0.0) {
+                double I_thermal = I[j][i] - (1.0 - W[j][i]) * Q;
+                if (I_thermal < 0.0) I_thermal = 0.0;
+                P[j][i] = (gamma_s / V) * I_thermal;
+                if (P[j][i] < 0.0) P[j][i] = 0.0;
+            } else {
+                double denom = V0 - S * dV;
+                if (fabs(denom) < 1e-12) denom = 1e-12;
+                double P_H = (C * C * dV) / (denom * denom);
+                double I_H = 0.5 * P_H * dV;
+                double I_thermal = I[j][i] - (1.0 - W[j][i]) * Q;
+                if (I_thermal < 0.0) I_thermal = 0.0;
+                P[j][i] = P_H + (gamma_s / V) * (I_thermal - I_H);
+                if (P[j][i] < 0.0) P[j][i] = 0.0;
+            }
+        }
+    }
+
+    t_total += dt;
+    std::cout << "Time = " << t_total << ", dt = " << dt << std::endl;
+}
+
+/*void Mader(
     int cells_x, int cells_y, int ghost_cells,
     std::vector<std::vector<double>>& u,
     std::vector<std::vector<double>>& v,
@@ -3985,12 +4400,12 @@ for (int j = j_start; j <= j_end; ++j) {
     for (int i = i_start; i <= i_end; ++i) {
         double V = 1.0 / rho[j][i];
         double dV = V0 - V;
-        // Защита от dV < 0 
+        //           dV < 0 
         if (dV < 0.0) {
             double I_thermal = I[j][i] - (1.0 - W[j][i]) * Q;
             if (I_thermal < 0.0) I_thermal = 0.0;
 // CHECK: MADER_EOS
-            P[j][i] = (gamma_s / V) * I_thermal; // так как I_H=0
+            P[j][i] = (gamma_s / V) * I_thermal; //         I_H=0
             if (P[j][i] < 0.0) P[j][i] = 0.0;
         } else {
             double denom = V0 - S * dV;
@@ -4020,7 +4435,7 @@ for (int j = j_start; j <= j_end; ++j) {
     }
 
     for (int j = 0; j < Ny; ++j) {
-        applyBoundaryConditions(rho[j].data(), u[j].data(), P[j].data(),
+        applyBoundaryConditions2(rho[j].data(), u[j].data(), P[j].data(),
                                 cells_x, ghost_cells, left_bc, right_bc);
     }
 // CHECK: MADER_VELOCITY
@@ -4033,7 +4448,7 @@ for (int j = j_start; j <= j_end; ++j) {
             P_col[j]   = P[j][i];
         }
 
-        applyBoundaryConditions(rho_col.data(), u_col.data(), P_col.data(),
+        applyBoundaryConditions2(rho_col.data(), u_col.data(), P_col.data(),
                                 cells_y, ghost_cells, bottom_bc, top_bc);
 
         for (int j = 0; j < Ny; ++j) {
@@ -4152,7 +4567,7 @@ for (int j = j_start; j <= j_end; ++j) {
             DPU[acc_j][acc_i] += DMASS * u_tilde[donor_j][donor_i];
             DPV[donor_j][donor_i] -= DMASS * v_tilde[donor_j][donor_i];
             DPV[acc_j][acc_i] += DMASS * v_tilde[donor_j][donor_i];
-            // Перенос массовой доли W (используем текущее значение W из основного массива)
+            //                       W (                            W                     )
             double W_donor = W[donor_j][donor_i];
             DW[donor_j][donor_i] -= DMASS * W_donor;
             DW[acc_j][acc_i] += DMASS * W_donor;
@@ -4198,7 +4613,7 @@ for (int j = j_start; j <= j_end; ++j) {
             double I_new = E_new - 0.5 * (u_new * u_new + v_new * v_new);
             if (I_new < 0.0) I_new = 0.0;
 
-            // Обновление W
+            //            W
             double W_new = (rho_tilde[j][i] * W[j][i] + DW[j][i]) / rho_new;
             if (W_new < 0.0) W_new = 0.0;
             if (W_new > 1.0) W_new = 1.0;
@@ -4212,7 +4627,7 @@ for (int j = j_start; j <= j_end; ++j) {
     }
 
     for (int j = 0; j < Ny; ++j) {
-        applyBoundaryConditions(rho[j].data(), u[j].data(), P[j].data(),
+        applyBoundaryConditions2(rho[j].data(), u[j].data(), P[j].data(),
                                 cells_x, ghost_cells, left_bc, right_bc);
     }
 
@@ -4225,7 +4640,7 @@ for (int j = j_start; j <= j_end; ++j) {
             P_col[j]   = P[j][i];
         }
 
-        applyBoundaryConditions(rho_col.data(), u_col.data(), P_col.data(),
+        applyBoundaryConditions2(rho_col.data(), u_col.data(), P_col.data(),
                                 cells_y, ghost_cells, bottom_bc, top_bc);
 
         for (int j = 0; j < Ny; ++j) {
@@ -4264,14 +4679,14 @@ for (int j = ghost_cells; j < Ny - ghost_cells; ++j) {
                 u[j][i-1]   = -u[j][i];
                 v[j][i-1]   = v[j][i];
             }
-            // Сверху
+            //       
             if (isSolid[j+1][i]) {
                 rho[j+1][i] = rho[j][i];
                 P[j+1][i]   = P[j][i];
                 u[j+1][i]   = u[j][i];
                 v[j+1][i]   = -v[j][i];
             }
-            // Снизу
+            //      
             if (isSolid[j-1][i]) {
                 rho[j-1][i] = rho[j][i];
                 P[j-1][i]   = P[j][i];
@@ -4285,7 +4700,7 @@ for (int j = ghost_cells; j < Ny - ghost_cells; ++j) {
 
     std::cout << t_total << " " << dt << std::endl;
     t_total += 2*dt;
-}
+}*/
 
 
 
@@ -4316,7 +4731,7 @@ void applyBoundaryConditions(
     int Ny = cells_y + 2 * ghost_cells;
     int Nu = Nx + 1;
     int Nv = Ny + 1;
-    double dx = 1.0 / cells_x;   // область [0,1]x[0,1]
+    double dx = 1.0 / cells_x;   //         [0,1]x[0,1]
     double dy = 1.0 / cells_y;
     (void)rho;
     double decay = exp(-2.0 * M_PI * M_PI * nu * t_current);
@@ -4419,7 +4834,7 @@ void applyBoundaryConditions(
             }
         }
     } else if (bottom_bc == "taylorGreen") {
-        // Нижняя граница: y = 0
+        //               : y = 0
         for (int i = 0; i < Nx; ++i) {
             for (int g = 0; g < ghost_cells; ++g) {
                 double x = (i - ghost_cells + 0.5) * dx;
@@ -5036,14 +5451,14 @@ for (int j = ghost_cells; j < Ny - ghost_cells; ++j) {
                 u[j][i-1]   = -u[j][i];
                 v[j][i-1]   = -v[j][i];
             }
-            // Сверху
+            //       
             if (isSolid[j+1][i]) {
                 rho[j+1][i] = rho[j][i];
                 P[j+1][i]   = P[j][i];
                 u[j+1][i]   = -u[j][i];
                 v[j+1][i]   = -v[j][i];
             }
-            // Снизу
+            //      
             if (isSolid[j-1][i]) {
                 rho[j-1][i] = rho[j][i];
                 P[j-1][i]   = P[j][i];
