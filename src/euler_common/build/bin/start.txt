@@ -1,0 +1,40 @@
+tau = 0.00001
+h = 0.005
+cells = 200
+cfl = 0.5
+left_bc = flow
+right_bc = flow
+test_name = sod1
+t_end = default
+count = 100
+t_output = 0.001
+solver_names =  weno
+key = true
+
+nameRS = hllc
+time_integrator = euler
+
+high_shem = weno
+tipe_reconsrutin = high
+limiter = minmod
+use_diffusion = false
+use_anti_diffusion = false
+use_artificial_viscosity = false
+viscosity_coeff = 0.001
+anti_diffusion_coeff = 0.001
+
+Руководство к файлу инициализации:
+В файле содержится 7 параметров для инициализации
+1: tau и h - это начальные шаги по времени соответственно
+2: cells - это количество расчётных ячеек
+3: CFL - число Куранта — Фридрихса — Леви
+4: left_dc и right_bc - это, соответственно, левое и правое граничное условие. Реализованы трех видов
+wall - отражение от стенки 
+flow - поток 
+periodic - периодическое ГУ 
+5: test_name - имя теста. Если нужен готовый тест Сода, то пишем sod{номер теста}. Например, sod1
+6: разностная схема: Годунова, Годунова-Колгана, Годунова-Колгана-Родионова, ЕНО или ВЕнО 
+7: параметр count отвечает за запись файла для гифки. Например, если count=100, то каждую сотую операцию будет запись файла 
+8: в отличие от параметра count, t_output отвечает за запись файла для гифки не через count-ый шаг, а через t_output-ое время
+godunov,eno, weno, Fletcher, godunov-kolgan,godunov-kolgan-rodionov customShem
+rusanov osher-solomon

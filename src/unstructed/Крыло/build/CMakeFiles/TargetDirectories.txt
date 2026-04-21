@@ -1,0 +1,4 @@
+/home/mae016/Gidrogaz_code/22_03_NonStruct/gmsh-reader/build/CMakeFiles/gmsh-reader.dir
+/home/mae016/Gidrogaz_code/22_03_NonStruct/gmsh-reader/build/CMakeFiles/gmsh-reader.bin.dir
+/home/mae016/Gidrogaz_code/22_03_NonStruct/gmsh-reader/build/CMakeFiles/edit_cache.dir
+/home/mae016/Gidrogaz_code/22_03_NonStruct/gmsh-reader/build/CMakeFiles/rebuild_cache.dir

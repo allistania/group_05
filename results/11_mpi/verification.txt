@@ -1,0 +1,2 @@
+max|rho_par-rho_seq| = 4.7e-13
+max|u_par-u_seq| = 8.3e-12

@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/Shem.dir/link.d CMakeFiles/Shem.dir/main.cpp.o CMakeFiles/Shem.dir/Feoktistov/FeokFunktion.cpp.o CMakeFiles/Shem.dir/Medyakova/Output.cpp.o CMakeFiles/Shem.dir/Batarin/parameters.cpp.o -o bin/Shem

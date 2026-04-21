@@ -1,0 +1,3 @@
+/home/mae016/Gidrogaz_code/2D_22.02_old/build/CMakeFiles/Shem.dir
+/home/mae016/Gidrogaz_code/2D_22.02_old/build/CMakeFiles/edit_cache.dir
+/home/mae016/Gidrogaz_code/2D_22.02_old/build/CMakeFiles/rebuild_cache.dir

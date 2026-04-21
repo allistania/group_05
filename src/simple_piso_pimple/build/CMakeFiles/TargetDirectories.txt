@@ -1,0 +1,3 @@
+/home/fgv003/shem2/build/CMakeFiles/Shem.dir
+/home/fgv003/shem2/build/CMakeFiles/edit_cache.dir
+/home/fgv003/shem2/build/CMakeFiles/rebuild_cache.dir
