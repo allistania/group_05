@@ -3,9 +3,9 @@ $MeshFormat
 $EndMeshFormat
 $PhysicalNames
 4
-1 1 "wall"
-1 2 "inflow"
-1 3 "outflow"
+1 3 "wall"
+1 4 "inflow"
+1 11 "outflow"
 2 10 "fluid"
 $EndPhysicalNames
 $Entities
