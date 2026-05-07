@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgmsh-reader.a "CMakeFiles/gmsh-reader.dir/src/read_MSH_Mesh.cpp.o"
+/usr/bin/ranlib libgmsh-reader.a

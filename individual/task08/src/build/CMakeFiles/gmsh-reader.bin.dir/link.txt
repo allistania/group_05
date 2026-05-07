@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall -Wformat -std=c++17 -Wno-int-in-bool-context -O3 -march=native "CMakeFiles/gmsh-reader.bin.dir/src/main.cpp.o" -o gmsh-reader.bin  libgmsh-reader.a 
