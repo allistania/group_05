@@ -1,0 +1,10 @@
+mesh_file=corrected_2.msh
+mach_inf=0.85
+alpha_deg=0.0
+final_time=20.0
+output_interval=0.1
+cfl=0.6
+gamma=1.4
+inlet_rho=1.0
+inlet_p=1.0
+outlet_p=1.0
